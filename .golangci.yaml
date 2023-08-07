@@ -25,8 +25,4 @@ linters:
 linters-settings:
   varnamelen:
     ignore-names:
-      - id
-      - db
-    ignore-decls:
-      - w http.ResponseWriter
-      - r *http.Request
+      - i
