@@ -9,7 +9,7 @@ import (
 	"github.com/Crocmagnon/gordle/lib/gordle"
 )
 
-func TestGetWord(t *testing.T) {
+func TestPickWord(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -26,7 +26,7 @@ func TestGetWord(t *testing.T) {
 		t.Run(test.want, func(t *testing.T) {
 			t.Parallel()
 			input := "test\ntests"
-			got, err := gordle.GetWord(strings.NewReader(input), test.length)
+			got, err := gordle.PickWord(strings.NewReader(input), test.length)
 			if !errors.Is(err, test.wantErr) {
 				t.Fatalf("got err %q want %q", test.wantErr, err)
 			}
@@ -38,26 +38,26 @@ func TestGetWord(t *testing.T) {
 	}
 }
 
-func TestTryWord(t *testing.T) {
+func TestCheckWord(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name  string
 		word  string
 		input string
-		want  []gordle.Feedback
+		want  gordle.FullFeedback
 	}{
-		{"empty", "", "", []gordle.Feedback{}},
-		{"missing input", "i", "", []gordle.Feedback{gordle.FeedbackNotInWord}},
-		{"correct single", "i", "i", []gordle.Feedback{gordle.FeedbackCorrect}},
-		{"incorrect place", "ab", "ba", []gordle.Feedback{gordle.FeedbackWrongPlace, gordle.FeedbackWrongPlace}},
+		{"empty", "", "", gordle.FullFeedback{}},
+		{"missing input", "i", "", gordle.FullFeedback{gordle.FeedbackNotInWord}},
+		{"correct single", "i", "i", gordle.FullFeedback{gordle.FeedbackCorrect}},
+		{"incorrect place", "ab", "ba", gordle.FullFeedback{gordle.FeedbackWrongPlace, gordle.FeedbackWrongPlace}},
 		{
 			"some correct some incorrect", "aba", "baa",
-			[]gordle.Feedback{gordle.FeedbackWrongPlace, gordle.FeedbackWrongPlace, gordle.FeedbackCorrect},
+			gordle.FullFeedback{gordle.FeedbackWrongPlace, gordle.FeedbackWrongPlace, gordle.FeedbackCorrect},
 		},
 		{
 			"complex", "testing", "xsesing",
-			[]gordle.Feedback{
+			gordle.FullFeedback{
 				gordle.FeedbackNotInWord,
 				gordle.FeedbackWrongPlace,
 				gordle.FeedbackWrongPlace,

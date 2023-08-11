@@ -4,11 +4,40 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"strings"
 )
 
-var ErrWordNotFound = errors.New("word not found with requested length")
+var (
+	ErrWordNotFound = errors.New("word not found with requested length")
+	ErrGameWon      = errors.New("won game")
+	ErrGameLost     = errors.New("game over")
+)
+
+type (
+	Feedback     string
+	FullFeedback []Feedback
+)
+
+func (ff FullFeedback) Wins() bool {
+	for _, f := range ff {
+		if f != FeedbackCorrect {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (ff FullFeedback) String() string {
+	str := strings.Builder{}
+	for _, f := range ff {
+		str.WriteString(string(f))
+	}
+
+	return str.String()
+}
 
 const (
 	FeedbackNotInWord  = Feedback("N")
@@ -16,9 +45,43 @@ const (
 	FeedbackCorrect    = Feedback("C")
 )
 
-type Feedback string
+type Game struct {
+	maxAttempts    int
+	currentAttempt int
+	pickedWord     string
+	over           bool
+}
 
-func GetWord(reader *strings.Reader, wordLength int) (string, error) {
+func New(maxAttempts int, pickedWord string) *Game {
+	g := &Game{
+		maxAttempts: maxAttempts,
+		pickedWord:  pickedWord,
+	}
+
+	return g
+}
+
+func (g *Game) TryWord(word string) (FullFeedback, error) {
+	feedback := CheckWord(g.pickedWord, word)
+	if feedback.Wins() {
+		g.over = true
+		return feedback, ErrGameWon
+	}
+
+	g.currentAttempt++
+	if g.currentAttempt >= g.maxAttempts {
+		g.over = true
+		return feedback, ErrGameLost
+	}
+
+	return feedback, nil
+}
+
+func (g *Game) Over() bool {
+	return g.over
+}
+
+func PickWord(reader io.Reader, wordLength int) (string, error) {
 	var candidates []string
 
 	scanner := bufio.NewScanner(reader)
@@ -43,7 +106,7 @@ func GetWord(reader *strings.Reader, wordLength int) (string, error) {
 	return candidates[rnd], nil
 }
 
-func CheckWord(word, input string) []Feedback {
+func CheckWord(word, input string) FullFeedback {
 	wordRunes := []rune(word)
 	inputRunes := []rune(input)
 	res := []Feedback{}
