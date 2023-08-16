@@ -42,18 +42,20 @@ func TestCheckWord(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name  string
-		word  string
-		input string
-		want  gordle.FullFeedback
+		name    string
+		word    string
+		input   string
+		want    gordle.FullFeedback
+		wantErr error
 	}{
-		{"empty", "", "", gordle.FullFeedback{}},
-		{"missing input", "i", "", gordle.FullFeedback{gordle.FeedbackNotInWord}},
-		{"correct single", "i", "i", gordle.FullFeedback{gordle.FeedbackCorrect}},
-		{"incorrect place", "ab", "ba", gordle.FullFeedback{gordle.FeedbackWrongPlace, gordle.FeedbackWrongPlace}},
+		{"empty", "", "", gordle.FullFeedback{}, nil},
+		{"missing input", "i", "", nil, gordle.ErrRunesCount},
+		{"correct single", "i", "i", gordle.FullFeedback{gordle.FeedbackCorrect}, nil},
+		{"incorrect place", "ab", "ba", gordle.FullFeedback{gordle.FeedbackWrongPlace, gordle.FeedbackWrongPlace}, nil},
 		{
 			"some correct some incorrect", "aba", "baa",
 			gordle.FullFeedback{gordle.FeedbackWrongPlace, gordle.FeedbackWrongPlace, gordle.FeedbackCorrect},
+			nil,
 		},
 		{
 			"complex", "testing", "xsesing",
@@ -66,13 +68,17 @@ func TestCheckWord(t *testing.T) {
 				gordle.FeedbackCorrect,
 				gordle.FeedbackCorrect,
 			},
+			nil,
 		},
 	}
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			got := gordle.CheckWord(test.word, test.input)
+			got, err := gordle.CheckWord(test.word, test.input)
+			if !errors.Is(err, test.wantErr) {
+				t.Errorf("got err %q, want %q", err, test.wantErr)
+			}
 			if !reflect.DeepEqual(got, test.want) {
 				t.Errorf("got %q, want %q", got, test.want)
 			}

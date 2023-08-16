@@ -21,6 +21,7 @@ func main() {
 	wordLength := flag.Int("l", defaultWordLength, "word length")
 	dictionary := flag.String("f", "", "dictionary file")
 	maxAttempts := flag.Int("m", defaultMaxAttempts, "maximum number of attempts")
+	cheat := flag.Bool("c", false, "cheat mode (prints word at the beginning)")
 
 	flag.Parse()
 
@@ -42,22 +43,34 @@ func main() {
 
 	fmt.Printf("length %d ; you have %d attempts\n", *wordLength, *maxAttempts)
 
+	if *cheat {
+		fmt.Printf("word: %s\n", word)
+	}
+
 	scanner := bufio.NewScanner(os.Stdin)
 	game := gordle.New(*maxAttempts, word)
 
+	play(game, scanner, word, wordLength)
+}
+
+func play(game *gordle.Game, scanner *bufio.Scanner, word string, wordLength *int) {
 	for !game.Over() && scanner.Scan() {
 		var feedback gordle.FullFeedback
 
 		text := strings.ToUpper(scanner.Text())
-		feedback, err = game.TryWord(text)
-
-		fmt.Println(feedback)
+		feedback, err := game.TryWord(text)
 
 		switch {
 		case errors.Is(err, gordle.ErrGameWon):
+			fmt.Println(feedback)
 			fmt.Println("🎉 you won")
 		case errors.Is(err, gordle.ErrGameLost):
+			fmt.Println(feedback)
 			fmt.Printf("😔 you lost, the correct word was %s\n", word)
+		case errors.Is(err, gordle.ErrRunesCount):
+			fmt.Printf("🤔 please provide a %d-letters word\n", *wordLength)
+		default:
+			fmt.Println(feedback)
 		}
 	}
 }

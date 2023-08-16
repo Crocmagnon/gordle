@@ -13,6 +13,7 @@ var (
 	ErrWordNotFound = errors.New("word not found with requested length")
 	ErrGameWon      = errors.New("won game")
 	ErrGameLost     = errors.New("game over")
+	ErrRunesCount   = errors.New("incorrect number of letters")
 )
 
 type (
@@ -62,7 +63,11 @@ func New(maxAttempts int, pickedWord string) *Game {
 }
 
 func (g *Game) TryWord(word string) (FullFeedback, error) {
-	feedback := CheckWord(g.pickedWord, word)
+	feedback, err := CheckWord(g.pickedWord, word)
+	if err != nil {
+		return feedback, err
+	}
+
 	if feedback.Wins() {
 		g.over = true
 		return feedback, ErrGameWon
@@ -106,9 +111,14 @@ func PickWord(reader io.Reader, wordLength int) (string, error) {
 	return candidates[rnd], nil
 }
 
-func CheckWord(word, input string) FullFeedback {
+func CheckWord(word, input string) (FullFeedback, error) {
 	wordRunes := []rune(word)
 	inputRunes := []rune(input)
+
+	if len(wordRunes) != len(inputRunes) {
+		return nil, ErrRunesCount
+	}
+
 	res := []Feedback{}
 
 	counter := map[rune]int{}
@@ -137,5 +147,5 @@ func CheckWord(word, input string) FullFeedback {
 		}
 	}
 
-	return res
+	return res, nil
 }
