@@ -55,9 +55,9 @@ func main() {
 
 		switch {
 		case errors.Is(err, gordle.ErrGameWon):
-			fmt.Println("you won")
+			fmt.Println("🎉 you won")
 		case errors.Is(err, gordle.ErrGameLost):
-			fmt.Println("you lost")
+			fmt.Printf("😔 you lost, the correct word was %s\n", word)
 		}
 	}
 }

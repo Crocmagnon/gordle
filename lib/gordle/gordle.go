@@ -40,9 +40,9 @@ func (ff FullFeedback) String() string {
 }
 
 const (
-	FeedbackNotInWord  = Feedback("N")
-	FeedbackWrongPlace = Feedback("W")
-	FeedbackCorrect    = Feedback("C")
+	FeedbackNotInWord  = Feedback("⬜️")
+	FeedbackWrongPlace = Feedback("🟡")
+	FeedbackCorrect    = Feedback("💚")
 )
 
 type Game struct {
